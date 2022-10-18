@@ -82,7 +82,7 @@ contract Cdp {
         // Interactions
         // Flash mint amount
         // Safe because DAI is nonReentrant as we know impl
-        DAI.mint(target, amount);
+        DAI.mint(address(target), amount);
 
 
         // Callback
@@ -102,7 +102,7 @@ contract Cdp {
 
                 // Get the repayment
                 // DAI Cannot reenter because we know impl, DO NOT ADD HOOKS OR YOU WILL GET REKT
-                DAI.burn(target, repayAmount);
+                DAI.burn(address(target), repayAmount);
             } else {
                 // They repay with collateral
 

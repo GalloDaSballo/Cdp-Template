@@ -16,10 +16,12 @@ import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
 
 contract SampleContractTest is DSTestPlus {
+
+    ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
     Cdp cdpContract;
 
     function setUp() public {
-        cdpContract = new Cdp();
+        cdpContract = new Cdp(BADGER);
     }
 
     function testFunc1() public {
