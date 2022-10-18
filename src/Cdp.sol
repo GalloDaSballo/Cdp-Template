@@ -115,6 +115,8 @@ contract Cdp {
         }
     }
 
+    event Debug(string name, uint256 amount);
+
 
     // Deposit
     function deposit(uint256 amount) public {
@@ -127,6 +129,7 @@ contract Cdp {
 
         // Check delta + transfer
         uint256 prevBal = COLLATERAL.balanceOf(address(this));
+        emit Debug("prevBal", prevBal);
         COLLATERAL.safeTransferFrom(msg.sender, address(this), amount);
         uint256 afterBal = COLLATERAL.balanceOf(address(this));
 
