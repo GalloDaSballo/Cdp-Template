@@ -2,7 +2,12 @@
 
 Streamlined template for getting started with Foundry and Solmate.
 
-## Contributing
+# WARNING
+
+Must use Forknet!!!!
+`
+forge test --fork-url RPC_URL_HERE -vvvvv
+`
 
 You will need a copy of [Foundry](https://github.com/foundry-rs/foundry) installed before proceeding. See the [installation guide](https://github.com/foundry-rs/foundry#installation) for details.
 
