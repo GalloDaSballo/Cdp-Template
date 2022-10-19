@@ -5,7 +5,6 @@ import "forge-std/Test.sol";
 
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 
-
 import {Cdp} from "../src/Cdp.sol";
 import {Dai} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
