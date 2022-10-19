@@ -46,7 +46,6 @@ contract SampleContractTest is Test {
         assert(cdpContract.COLLATERAL() == BADGER);
     }
 
-
     function testBasicDeposit() public {
         // Test is scoped so you need to re-do setup each test
         getSomeToken();
