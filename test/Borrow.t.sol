@@ -9,14 +9,6 @@ import {Cdp} from "../src/Cdp.sol";
 import {Dai} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
-// Useful links
-// How to steal tokens for forknet: 
-// https://github.com/foundry-rs/forge-std/blob/2a2ce3692b8c1523b29de3ec9d961ee9fbbc43a6/src/Test.sol#L118-L150
-// All the basics
-// https://github.com/dabit3/foundry-cheatsheet
-// Foundry manual
-// https://book.getfoundry.sh/cheatcodes/
-
 
 contract SampleContractTest is Test {
     using SafeTransferLib for ERC20;
@@ -29,7 +21,6 @@ contract SampleContractTest is Test {
     Cdp cdpContract;
 
     function getSomeToken() internal {
-        // become whale
         vm.prank(0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e);
         BADGER.safeTransfer(address(this), 123e18);
         assert(BADGER.balanceOf(address(this)) == 123e18);
@@ -41,6 +32,11 @@ contract SampleContractTest is Test {
     }
 
     function testbasicBorrow() public {
+        /*
+        * Simple test covering basic borrowing against
+        * properly deposited collateral
+        * TODO: Mock Oracle for Cdp.ratio once it's added
+        */
         getSomeToken();
 
         // Deposit collateral first
@@ -53,7 +49,10 @@ contract SampleContractTest is Test {
     }
 
     function testFailBorrowOverLimit() public {
+        // Case when borrowing against insufficient amount of collateral
         uint256 borrowedAmt = 1000;
         cdpContract.borrow(borrowedAmt);
+        // Make sure user didn't borrow anything
+        assert(cdpContract.DAI().balanceOf(user) == 0);
     }
 }
