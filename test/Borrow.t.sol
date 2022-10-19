@@ -31,9 +31,9 @@ contract SampleContractTest is Test {
         user = address(this);
     }
 
-    function testbasicBorrow() public {
+    function testbasicBorrow(uint32 amount) public {
         /*
-        * Simple test covering basic borrowing against
+        * Simple fuzz test covering basic borrowing against
         * properly deposited collateral
         * TODO: Mock Oracle for Cdp.ratio once it's added
         */
@@ -43,13 +43,12 @@ contract SampleContractTest is Test {
         BADGER.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
 
-        uint256 borrowedAmt = 1000;
-        cdpContract.borrow(borrowedAmt);
-        assert(cdpContract.DAI().balanceOf(user) == borrowedAmt);
+        cdpContract.borrow(amount);
+        assert(cdpContract.DAI().balanceOf(user) == amount);
     }
 
-    function testFailBorrowOverLimit() public {
-        // Case when borrowing against insufficient amount of collateral
+    function testFailBorrowOverLimitNoCollateral() public {
+        // Case when borrowing against no  collateral at all
         uint256 borrowedAmt = 1000;
         cdpContract.borrow(borrowedAmt);
         // Make sure user didn't borrow anything
