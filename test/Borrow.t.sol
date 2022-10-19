@@ -50,7 +50,7 @@ contract SampleContractTest is Test {
     }
 
     function testFailBorrowOverLimitNoCollateral() public {
-        // Case when borrowing against no  collateral at all
+        // Case when borrowing against no collateral at all
         uint256 borrowedAmt = 1000;
         cdpContract.borrow(borrowedAmt);
         // Make sure user didn't borrow anything
