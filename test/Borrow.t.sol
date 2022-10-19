@@ -17,6 +17,7 @@ contract SampleContractTest is Test {
     ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
 
     address user;
+    uint256 collateral_amount;
 
     Cdp cdpContract;
 
@@ -29,6 +30,7 @@ contract SampleContractTest is Test {
     function setUp() public {
         cdpContract = new Cdp(BADGER);
         user = address(this);
+        collateral_amount = 1337;
     }
 
     function testbasicBorrow(uint32 amount) public {
@@ -40,8 +42,8 @@ contract SampleContractTest is Test {
         getSomeToken();
 
         // Deposit collateral first
-        BADGER.safeApprove(address(cdpContract), 1337);
-        cdpContract.deposit(1337);
+        BADGER.safeApprove(address(cdpContract), collateral_amount);
+        cdpContract.deposit(collateral_amount);
 
         cdpContract.borrow(amount);
         assert(cdpContract.DAI().balanceOf(user) == amount);
