@@ -7,6 +7,7 @@ import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 
 
 import {Cdp} from "../src/Cdp.sol";
+import {Dai} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
 // Useful links
@@ -23,8 +24,7 @@ contract SampleContractTest is Test {
 
 
     ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
-    
-    // Become this guy
+
     address user;
 
     Cdp cdpContract;
@@ -41,17 +41,20 @@ contract SampleContractTest is Test {
         user = address(this);
     }
 
-    function testBasicSetupWorks() public {
-        getSomeToken();
-        assert(cdpContract.COLLATERAL() == BADGER);
-    }
-
-
-    function testBasicDeposit() public {
-        // Test is scoped so you need to re-do setup each test
+    function testbasicBorrow() public {
         getSomeToken();
 
+        // Deposit collateral first
         BADGER.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
+
+        uint256 borrowedAmt = 1000;
+        cdpContract.borrow(borrowedAmt);
+        assert(cdpContract.DAI().balanceOf(user) == borrowedAmt);
+    }
+
+    function testFailBorrowOverLimit() public {
+        uint256 borrowedAmt = 1000;
+        cdpContract.borrow(borrowedAmt);
     }
 }
