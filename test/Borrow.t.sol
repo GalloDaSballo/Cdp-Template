@@ -10,9 +10,8 @@ import {Dai} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
 
-contract SampleContractTest is Test {
+contract BorrowTest is Test {
     using SafeTransferLib for ERC20;
-
 
     ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
 
@@ -44,7 +43,8 @@ contract SampleContractTest is Test {
         // Deposit collateral first
         BADGER.safeApprove(address(cdpContract), collateral_amount);
         cdpContract.deposit(collateral_amount);
-
+        console.log("MAX BORROW");
+        console.log(cdpContract.maxBorrow());
         cdpContract.borrow(amount);
         assert(cdpContract.DAI().balanceOf(user) == amount);
     }
