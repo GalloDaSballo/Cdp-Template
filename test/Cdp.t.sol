@@ -60,7 +60,7 @@ contract SampleContractTest is Test {
     function testFailgetLatestRatioCLNotUpdated() public {
         // Test for case when CL wasn't updated for 10 hours, so getLatestRatio must fail
         int256 expRatio = 14802961150000000000;
-        uint16 thresholdToFail = 60 * 60 * 10; // 10 Hours
+        uint32 thresholdToFail = 60 * 60 * 25; // 25 Hours
         // Make sure getLatestRatio() fails when CL wasn't updated recently
         vm.mockCall(
             address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address

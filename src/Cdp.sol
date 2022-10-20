@@ -50,6 +50,7 @@ contract Cdp {
 
     /**
      * Returns the latest ratio between BTC and ETH
+     * TODO: Check before launch: what should be considered as acceptable time range for CL to be updated
      */
     function getLatestRatio() public view returns (int) {
         (
@@ -60,7 +61,7 @@ contract Cdp {
             /*uint80 answeredInRound*/
         ) = priceFeed.latestRoundData();
         // Make sure CL was updated recently
-        uint16 threshold = 60 * 60 * 4; // Hours
+        uint32 threshold = 60 * 60 * 24; // Hours
         require(updatedAt > block.timestamp - threshold, "Feed wasn't updated recently");
         return ethToBtcRatio;
     }
