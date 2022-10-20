@@ -42,7 +42,6 @@ contract BorrowTest is Test {
         // Deposit collateral first
         WETH.safeApprove(address(cdpContract), collateral_amount);
         cdpContract.deposit(collateral_amount);
-        cdpContract.setRatio();
         cdpContract.borrow(amount);
         assert(cdpContract.EBTC().balanceOf(user) == amount);
     }

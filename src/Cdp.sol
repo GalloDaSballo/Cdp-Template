@@ -46,8 +46,6 @@ contract Cdp {
         COLLATERAL = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
         // BTC/ETH Oracle
         priceFeed = AggregatorV3Interface(0xdeb288F737066589598e9214E782fa5A8eD689e8);
-        // Set ratio on Contract deployment
-        setRatio();
     }
 
     /**
@@ -64,14 +62,10 @@ contract Cdp {
         return ethToBtcRatio;
     }
 
-    function setRatio() public {
+    function getRatio() public view returns (uint256) {
         int256 ethToBtcRatio = getLatestRatio();
         require(ethToBtcRatio > 0, "ETH to BTC ratio is negative");
-        ratio = 1e18 * RATIO_DECIMALS / (uint(ethToBtcRatio));
-    }
-
-    function getRatio() public view returns (uint256) {
-        return ratio;
+        return 1e18 * RATIO_DECIMALS / (uint(ethToBtcRatio));
     }
 
     function flash(uint256 amount, ICallbackRecipient target, bytes memory data) external {
@@ -159,7 +153,7 @@ contract Cdp {
     /// Deposited ETH * (ETH / BTC  ratio) = Value
     /// Value * LTV = Max Borrow
     function maxBorrow() public view returns (uint256) {
-        return totalDeposited * ratio * LTV_PERCENTAGE / RATIO_DECIMALS;
+        return totalDeposited * getRatio() * LTV_PERCENTAGE / RATIO_DECIMALS;
     }
 
     function isSolvent() public view returns (bool) {
