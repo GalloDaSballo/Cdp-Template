@@ -4,7 +4,7 @@ pragma solidity 0.8.15;
 import "forge-std/Test.sol";
 
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
-
+import {AggregatorV3Interface} from "../lib/chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 
 import {Cdp} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
@@ -20,8 +20,6 @@ import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
 contract SampleContractTest is Test {
     using SafeTransferLib for ERC20;
-
-
     ERC20 public constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     
     // Become this guy
@@ -57,5 +55,34 @@ contract SampleContractTest is Test {
         // Simple test case to check that Oracle doesn't return zero values
         int ratio = cdpContract.getLatestRatio();
         assert(ratio != 0);
+    }
+
+    function testFailgetLatestRatioCLNotUpdated() public {
+        // Test for case when CL wasn't updated for 10 hours, so getLatestRatio must fail
+        int256 expRatio = 14802961150000000000;
+        uint16 thresholdToFail = 60 * 60 * 10; // 10 Hours
+        // Make sure getLatestRatio() fails when CL wasn't updated recently
+        vm.mockCall(
+            address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            // CL mock data
+            abi.encode(73786976294838207540, expRatio, 1666261667, thresholdToFail, 73786976294838207540)
+        );
+        cdpContract.getLatestRatio();
+        vm.clearMockedCalls();
+    }
+    function testFailgetLatestRatioCLReturnedNegativeNumber() public {
+        // Test for case when CL for some reason returned negative value
+        int256 expRatio = -14802961150000000000;
+        uint16 validThreshold = 60 * 60 * 1; // 1 Hour, CL was updated recently
+        // Make sure getLatestRatio() fails when CL wasn't updated recently
+        vm.mockCall(
+            address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            // CL mock data
+            abi.encode(73786976294838207540, expRatio, 1666261667, validThreshold, 73786976294838207540)
+        );
+        cdpContract.getLatestRatio();
+        vm.clearMockedCalls();
     }
 }

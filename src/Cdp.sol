@@ -60,7 +60,7 @@ contract Cdp {
             /*uint80 answeredInRound*/
         ) = priceFeed.latestRoundData();
         // Make sure CL was updated recently
-        uint16 threshold = 60 * 60 * 3; // Three hours
+        uint16 threshold = 60 * 60 * 4; // Hours
         require(updatedAt > block.timestamp - threshold, "Feed wasn't updated recently");
         return ethToBtcRatio;
     }
