@@ -76,9 +76,19 @@ contract SampleContractTest is Test {
         vm.clearMockedCalls();
     }
 
-    function testgetLatestRatio() public view {
+    function testgetLatestRatio() public {
         // Simple test case to check that Oracle doesn't return zero values
+        int256 expRatio = 14802961150000000000;
+        uint256 validThreshold = block.timestamp - 60 * 60 * 1; // 1 Hour, CL was updated recently
+        // Make sure getLatestRatio() fails when CL wasn't updated recently
+        vm.mockCall(
+            address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            // CL mock data
+            abi.encode(73786976294838207540, expRatio, 1666261667, validThreshold, 73786976294838207540)
+        );
         int ratio = cdpContract.getLatestRatio();
+        assertEq(ratio, expRatio);
         assert(ratio != 0);
     }
 
