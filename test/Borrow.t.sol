@@ -7,42 +7,29 @@ import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 
 import {Cdp} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
+import {EbtcTest} from "./EbtcTest.sol";
 
 
-contract BorrowTest is Test {
+contract BorrowTest is EbtcTest {
     using SafeTransferLib for ERC20;
 
-    ERC20 public constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-
-    address user;
-    uint256 collateral_amount;
-
-    Cdp cdpContract;
-
-    function getSomeToken() internal {
-        vm.prank(0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e);
-        WETH.safeTransfer(address(this), 123e18);
-        assert(WETH.balanceOf(address(this)) == 123e18);
-    }
-
-    function setUp() public {
-        cdpContract = new Cdp();
-        user = address(this);
-        collateral_amount = 123e18; // 123 WETH deposited
-    }
-
-    function testbasicBorrow(uint64 amount) public {
+    function testbasicBorrow(uint64 borrowedAmount) public {
         /*
         * Simple fuzz test covering basic borrowing against
         * properly deposited collateral
         */
+        uint256 collateral_amount = 123e18; // 123 WETH to be deposited
         getSomeToken();
-
+        int256 expRatio = 14802961150000000000;
+        uint256 validThreshold = block.timestamp - 60 * 60 * 1;
+        // Mock CL call to return expRatio as BTC/ETH ratio
+        mockRateGetterCL(expRatio, validThreshold);
         // Deposit collateral first
         WETH.safeApprove(address(cdpContract), collateral_amount);
         cdpContract.deposit(collateral_amount);
-        cdpContract.borrow(amount);
-        assert(cdpContract.EBTC().balanceOf(user) == amount);
+        cdpContract.borrow(borrowedAmount);
+        assert(cdpContract.EBTC().balanceOf(user) == borrowedAmount);
+        vm.clearMockedCalls();
     }
 
     function testFailBorrowOverLimitNoCollateral() public {
