@@ -6,7 +6,6 @@ import "forge-std/Test.sol";
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 
 import {Cdp} from "../src/Cdp.sol";
-import {Dai} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 
 
@@ -46,7 +45,7 @@ contract BorrowTest is Test {
         console.log("MAX BORROW");
         console.log(cdpContract.maxBorrow());
         cdpContract.borrow(amount);
-        assert(cdpContract.DAI().balanceOf(user) == amount);
+        assert(cdpContract.EBTC().balanceOf(user) == amount);
     }
 
     function testFailBorrowOverLimitNoCollateral() public {
@@ -54,6 +53,6 @@ contract BorrowTest is Test {
         uint256 borrowedAmt = 1000;
         cdpContract.borrow(borrowedAmt);
         // Make sure user didn't borrow anything
-        assert(cdpContract.DAI().balanceOf(user) == 0);
+        assert(cdpContract.EBTC().balanceOf(user) == 0);
     }
 }

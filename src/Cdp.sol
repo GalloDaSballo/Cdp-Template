@@ -5,33 +5,11 @@ pragma solidity 0.8.15;
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
 
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
+import {eBTC} from "./eBTC.sol";
 
 enum RepayWith {
-    DAI,
+    EBTC,
     COLLATERAL
-}
-contract Dai {
-
-    address immutable OWNER;
-
-    mapping(address => uint256) balances;
-
-    constructor() {
-        // TODO: Must deploy from CDP
-        OWNER = msg.sender;
-    }
-
-    function mint(address recipient, uint256 amount) external {
-        balances[recipient] += amount;
-    }
-
-    function balanceOf(address recipient) external view returns (uint256) {
-        return balances[recipient];
-    }
-
-    function burn(address recipient, uint256 amount) external {
-        balances[recipient] -= amount;
-    }
 }
 
 interface ICallbackRecipient {
@@ -46,7 +24,7 @@ contract Cdp {
 
     uint256 constant LIQUIDATION_TRESHOLD = 10_000; // 100% in BPS
 
-    Dai immutable public DAI;
+    eBTC immutable public EBTC;
 
     ERC20 immutable public COLLATERAL;
 
@@ -62,7 +40,7 @@ contract Cdp {
     address owner;
 
     constructor(ERC20 collateral) {
-        DAI = new Dai();
+        EBTC = new eBTC();
         COLLATERAL = collateral;
     }
 
@@ -81,8 +59,7 @@ contract Cdp {
 
         // Interactions
         // Flash mint amount
-        // Safe because DAI is nonReentrant as we know impl
-        DAI.mint(address(target), amount);
+        EBTC.mint(address(target), amount);
 
 
         // Callback
@@ -91,7 +68,7 @@ contract Cdp {
 
         // Check solvency
         if(totalBorrowed > maxBorrow()) {
-            if(collateralChoice == RepayWith.DAI) {
+            if(collateralChoice == RepayWith.EBTC) {
                 uint256 minRepay = totalBorrowed - maxBorrow();
                 // They must repay
                 // This is min repayment
@@ -101,8 +78,8 @@ contract Cdp {
                 totalBorrowed -= repayAmount;
 
                 // Get the repayment
-                // DAI Cannot reenter because we know impl, DO NOT ADD HOOKS OR YOU WILL GET REKT
-                DAI.burn(address(target), repayAmount);
+                // EBTC Cannot reenter because we know impl, DO NOT ADD HOOKS OR YOU WILL GET REKT
+                EBTC.burn(address(target), repayAmount);
             } else {
                 // They repay with collateral
 
@@ -151,7 +128,7 @@ contract Cdp {
         totalBorrowed = newTotalBorrowed;
 
         // Interaction
-        DAI.mint(msg.sender, amount);
+        EBTC.mint(msg.sender, amount);
     }
 
     function maxBorrow() public view returns (uint256) {
@@ -174,7 +151,7 @@ contract Cdp {
 
 
         // Burn the token
-        DAI.burn(msg.sender, excessDebt);
+        EBTC.burn(msg.sender, excessDebt);
     }
 
 }
