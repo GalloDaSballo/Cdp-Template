@@ -28,7 +28,7 @@ contract BorrowTest is Test {
     function setUp() public {
         cdpContract = new Cdp();
         user = address(this);
-        collateral_amount = 123e18;
+        collateral_amount = 123e18; // 123 WETH deposited
     }
 
     function testbasicBorrow(uint32 amount) public {

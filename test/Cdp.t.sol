@@ -21,7 +21,7 @@ import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 contract SampleContractTest is Test {
     using SafeTransferLib for ERC20;
     ERC20 public constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
-    
+
     // Become this guy
     address user;
 
@@ -50,6 +50,29 @@ contract SampleContractTest is Test {
         WETH.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
     }
+    function testGetMaxBorrow() public {
+        int256 expRatio = 14802961150000000000;
+        getSomeToken();
+        uint256 collateral = 1337;
+        uint256 validThreshold = block.timestamp - 60 * 60 * 1;
+        vm.mockCall(
+            address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
+            abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
+            // CL mock data
+            abi.encode(73786976294838207540, expRatio, 1666261667, validThreshold, 73786976294838207540)
+        );
+        WETH.safeApprove(address(cdpContract), collateral);
+        cdpContract.deposit(collateral);
+        // Calculate expected max borrow value
+        uint256 expectedMaxBorrow = (
+            collateral * (1e18 * cdpContract.RATIO_DECIMALS() / uint(expRatio))
+            * cdpContract.LTV_PERCENTAGE() / cdpContract.RATIO_DECIMALS()
+        );
+
+        uint256 maxBorrow = cdpContract.maxBorrow();
+        assertEq(expectedMaxBorrow, maxBorrow);
+        vm.clearMockedCalls();
+    }
 
     function testgetLatestRatio() public view {
         // Simple test case to check that Oracle doesn't return zero values
@@ -60,7 +83,7 @@ contract SampleContractTest is Test {
     function testFailgetLatestRatioCLNotUpdated() public {
         // Test for case when CL wasn't updated for 10 hours, so getLatestRatio must fail
         int256 expRatio = 14802961150000000000;
-        uint32 thresholdToFail = 60 * 60 * 25; // 25 Hours
+        uint256 thresholdToFail = block.timestamp - 60 * 60 * 25; // 25 Hours
         // Make sure getLatestRatio() fails when CL wasn't updated recently
         vm.mockCall(
             address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
@@ -74,7 +97,7 @@ contract SampleContractTest is Test {
     function testFailgetLatestRatioCLReturnedNegativeNumber() public {
         // Test for case when CL for some reason returned negative value
         int256 expRatio = -14802961150000000000;
-        uint16 validThreshold = 60 * 60 * 1; // 1 Hour, CL was updated recently
+        uint256 validThreshold = block.timestamp - 60 * 60 * 1; // 1 Hour, CL was updated recently
         // Make sure getLatestRatio() fails when CL wasn't updated recently
         vm.mockCall(
             address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address

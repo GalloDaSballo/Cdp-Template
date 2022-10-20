@@ -22,19 +22,14 @@ contract Cdp {
 
     uint256 constant MAX_BPS = 10_000;
     uint256 constant LIQUIDATION_TRESHOLD = 10_000; // 100% in BPS
-    uint256 constant RATIO_DECIMALS = 10 ** 8;
+    uint256 public constant LTV_PERCENTAGE = 8e17;
+    uint256 public constant RATIO_DECIMALS = 10 ** 8;
 
     eBTC immutable public EBTC;
-
     ERC20 immutable public COLLATERAL;
 
     uint256 totalDeposited;
-
     uint256 totalBorrowed;
-
-    uint256 ratio = 3e17;
-
-    uint256 constant LTV_PERCENTAGE = 8e17;
 
     address owner;
 
@@ -52,7 +47,7 @@ contract Cdp {
      * Returns the latest ratio between BTC and ETH
      * TODO: Check before launch: what should be considered as acceptable time range for CL to be updated
      */
-    function getLatestRatio() public view returns (int) {
+    function getLatestRatio() public view returns (int256) {
         (
             /*uint80 roundID*/,
             int256 ethToBtcRatio,
@@ -63,12 +58,15 @@ contract Cdp {
         // Make sure CL was updated recently
         uint32 threshold = 60 * 60 * 24; // Hours
         require(updatedAt > block.timestamp - threshold, "Feed wasn't updated recently");
+        require(ethToBtcRatio > 0, "ETH to BTC ratio is negative");
         return ethToBtcRatio;
     }
 
+    /**
+     * Takes latest ratio for BTC/ETH from CL and converts it to ETH/BTC ratio
+     */
     function getRatio() public view returns (uint256) {
         int256 ethToBtcRatio = getLatestRatio();
-        require(ethToBtcRatio > 0, "ETH to BTC ratio is negative");
         return 1e18 * RATIO_DECIMALS / (uint(ethToBtcRatio));
     }
 
