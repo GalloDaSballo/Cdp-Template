@@ -53,4 +53,10 @@ contract SampleContractTest is Test {
         BADGER.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
     }
+
+    function testgetLatestRatio() public view {
+        // Simple test case to check that Oracle doesn't return zero values
+        int ratio = cdpContract.getLatestRatio();
+        assert(ratio != 0);
+    }
 }

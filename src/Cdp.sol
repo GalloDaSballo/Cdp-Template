@@ -32,8 +32,7 @@ contract Cdp {
 
     uint256 totalBorrowed;
 
-    // Oracle for Ratio
-    uint256 ratio = 3e17; // Conversion rate
+    uint256 ratio = 3e17;
 
     uint256 constant RATIO_DECIMALS = 10 ** 8;
 
@@ -44,12 +43,31 @@ contract Cdp {
     constructor(ERC20 collateral) {
         EBTC = new eBTC();
         COLLATERAL = collateral;
+        // BTC/ETH Oracle
         priceFeed = AggregatorV3Interface(0xdeb288F737066589598e9214E782fa5A8eD689e8);
+    }
+
+    /**
+     * Returns the latest ratio between BTC and ETH
+     */
+    function getLatestRatio() public view returns (int) {
+        (
+            /*uint80 roundID*/,
+            int256 ethToBtcRatio,
+            /*uint startedAt*/,
+            /*uint timeStamp*/,
+            /*uint80 answeredInRound*/
+        ) = priceFeed.latestRoundData();
+        return ethToBtcRatio;
     }
 
     // NOTE: Unsafe should be protected by governance (tbh should be a feed)
     function setRatio(uint256 newRatio) external {
         ratio = newRatio;
+    }
+
+    function getRatio() private view returns (uint256) {
+        return ratio;
     }
 
     function flash(uint256 amount, ICallbackRecipient target, bytes memory data) external {

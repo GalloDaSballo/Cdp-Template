@@ -42,8 +42,6 @@ contract BorrowTest is Test {
         // Deposit collateral first
         BADGER.safeApprove(address(cdpContract), collateral_amount);
         cdpContract.deposit(collateral_amount);
-        console.log("MAX BORROW");
-        console.log(cdpContract.maxBorrow());
         cdpContract.borrow(amount);
         assert(cdpContract.EBTC().balanceOf(user) == amount);
     }
