@@ -56,9 +56,12 @@ contract Cdp {
             /*uint80 roundID*/,
             int256 ethToBtcRatio,
             /*uint startedAt*/,
-            /*uint timeStamp*/,
+            uint256 updatedAt,
             /*uint80 answeredInRound*/
         ) = priceFeed.latestRoundData();
+        // Make sure CL was updated recently
+        uint16 threshold = 60 * 60 * 3; // Three hours
+        require(updatedAt > block.timestamp - threshold, "Feed wasn't updated recently");
         return ethToBtcRatio;
     }
 
