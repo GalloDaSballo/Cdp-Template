@@ -21,4 +21,7 @@ contract eBTC {
     function burn(address recipient, uint256 amount) external {
         balances[recipient] -= amount;
     }
+    function decimals() public view virtual returns (uint8) {
+      return 8;
+    }
 }

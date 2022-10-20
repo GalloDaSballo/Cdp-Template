@@ -23,7 +23,6 @@ contract Cdp {
     uint256 constant MAX_BPS = 10_000;
     uint256 constant LIQUIDATION_TRESHOLD = 10_000; // 100% in BPS
     uint256 public constant LTV_PERCENTAGE = 8e17;
-    uint256 public constant RATIO_DECIMALS = 10 ** 8;
 
     eBTC immutable public EBTC;
     ERC20 immutable public COLLATERAL;
@@ -58,16 +57,8 @@ contract Cdp {
         // Make sure CL was updated recently
         uint32 threshold = 60 * 60 * 24; // Hours
         require(updatedAt > block.timestamp - threshold, "Feed wasn't updated recently");
-        require(ethToBtcRatio > 0, "ETH to BTC ratio is negative");
+        require(ethToBtcRatio > 0, "ETH to BTC ratio is negative or eq to 0");
         return ethToBtcRatio;
-    }
-
-    /**
-     * Takes latest ratio for BTC/ETH from CL and converts it to ETH/BTC ratio
-     */
-    function getRatio() public view returns (uint256) {
-        int256 ethToBtcRatio = getLatestRatio();
-        return 1e18 * RATIO_DECIMALS / (uint(ethToBtcRatio));
     }
 
     function flash(uint256 amount, ICallbackRecipient target, bytes memory data) external {
@@ -152,10 +143,9 @@ contract Cdp {
         EBTC.mint(msg.sender, amount);
     }
     /// Calculate maximal borrow amount using formula:
-    /// Deposited ETH * (ETH / BTC  ratio) = Value
-    /// Value * LTV = Max Borrow
+    /// Deposited ETH * BTC.decimals() / BTC/ETH ratio
     function maxBorrow() public view returns (uint256) {
-        return totalDeposited * getRatio() * LTV_PERCENTAGE / RATIO_DECIMALS;
+        return totalDeposited * EBTC.decimals() / uint(getLatestRatio()) * LTV_PERCENTAGE;
     }
 
     function isSolvent() public view returns (bool) {
@@ -168,10 +158,8 @@ contract Cdp {
 
         uint256 excessDebt = totalBorrowed - maxBorrow();
 
-
         // Give the contract to liquidator
         owner = msg.sender;
-
 
         // Burn the token
         EBTC.burn(msg.sender, excessDebt);

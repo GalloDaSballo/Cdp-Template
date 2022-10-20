@@ -8,6 +8,7 @@ import {AggregatorV3Interface} from "../lib/chainlink/contracts/src/v0.8/interfa
 
 import {Cdp} from "../src/Cdp.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
+import {eBTC} from "../src/eBTC.sol";
 
 // Useful links
 // How to steal tokens for forknet: 
@@ -24,7 +25,7 @@ contract SampleContractTest is Test {
 
     // Become this guy
     address user;
-
+    eBTC EBTC;
     Cdp cdpContract;
 
     function getSomeToken() internal {
@@ -36,6 +37,7 @@ contract SampleContractTest is Test {
     function setUp() public {
         cdpContract = new Cdp();
         user = address(this);
+        EBTC = new eBTC();
     }
 
     function testBasicSetupWorks() public {
@@ -50,27 +52,27 @@ contract SampleContractTest is Test {
         WETH.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
     }
+
     function testGetMaxBorrow() public {
-        int256 expRatio = 14802961150000000000;
         getSomeToken();
-        uint256 collateral = 1337;
+        int256 expRatio = 14802961150000000000;
         uint256 validThreshold = block.timestamp - 60 * 60 * 1;
+        // Mock CL call to return expRatio as BTC/ETH ratio
         vm.mockCall(
             address(0xdeb288F737066589598e9214E782fa5A8eD689e8),  // CL address
             abi.encodeWithSelector(AggregatorV3Interface.latestRoundData.selector),
             // CL mock data
             abi.encode(73786976294838207540, expRatio, 1666261667, validThreshold, 73786976294838207540)
         );
+        uint256 collateral = 1e18;  // ETH
         WETH.safeApprove(address(cdpContract), collateral);
         cdpContract.deposit(collateral);
         // Calculate expected max borrow value
         uint256 expectedMaxBorrow = (
-            collateral * (1e18 * cdpContract.RATIO_DECIMALS() / uint(expRatio))
-            * cdpContract.LTV_PERCENTAGE() / cdpContract.RATIO_DECIMALS()
+            collateral * EBTC.decimals() / uint(cdpContract.getLatestRatio()) * cdpContract.LTV_PERCENTAGE()
         );
-
         uint256 maxBorrow = cdpContract.maxBorrow();
-        assertEq(expectedMaxBorrow, maxBorrow);
+        assertEq(maxBorrow, expectedMaxBorrow);
         vm.clearMockedCalls();
     }
 

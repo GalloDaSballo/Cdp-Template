@@ -31,11 +31,10 @@ contract BorrowTest is Test {
         collateral_amount = 123e18; // 123 WETH deposited
     }
 
-    function testbasicBorrow(uint32 amount) public {
+    function testbasicBorrow(uint64 amount) public {
         /*
         * Simple fuzz test covering basic borrowing against
         * properly deposited collateral
-        * TODO: Mock Oracle for Cdp.ratio once it's added
         */
         getSomeToken();
 
