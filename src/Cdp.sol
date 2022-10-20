@@ -3,7 +3,7 @@ pragma solidity 0.8.15;
 
 // NOTE: Solmate doesn't check for token existence, this may cause bugs if you enable any collateral
 import {SafeTransferLib} from "../lib/solmate/src/utils/SafeTransferLib.sol";
-
+import {AggregatorV3Interface} from "../lib/chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
 import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 import {eBTC} from "./eBTC.sol";
 
@@ -39,9 +39,12 @@ contract Cdp {
 
     address owner;
 
+    AggregatorV3Interface internal priceFeed;
+
     constructor(ERC20 collateral) {
         EBTC = new eBTC();
         COLLATERAL = collateral;
+        priceFeed = AggregatorV3Interface(0xdeb288F737066589598e9214E782fa5A8eD689e8);
     }
 
     // NOTE: Unsafe should be protected by governance (tbh should be a feed)
