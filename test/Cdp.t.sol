@@ -22,7 +22,7 @@ contract SampleContractTest is Test {
     using SafeTransferLib for ERC20;
 
 
-    ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
+    ERC20 public constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
     
     // Become this guy
     address user;
@@ -30,27 +30,26 @@ contract SampleContractTest is Test {
     Cdp cdpContract;
 
     function getSomeToken() internal {
-        // become whale
-        vm.prank(0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e);
-        BADGER.safeTransfer(address(this), 123e18);
-        assert(BADGER.balanceOf(address(this)) == 123e18);
+        vm.prank(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
+        WETH.safeTransfer(address(this), 123e18);
+        assert(WETH.balanceOf(address(this)) == 123e18);
     }
 
     function setUp() public {
-        cdpContract = new Cdp(BADGER);
+        cdpContract = new Cdp();
         user = address(this);
     }
 
     function testBasicSetupWorks() public {
         getSomeToken();
-        assert(cdpContract.COLLATERAL() == BADGER);
+        assert(cdpContract.COLLATERAL() == WETH);
     }
 
     function testBasicDeposit() public {
         // Test is scoped so you need to re-do setup each test
         getSomeToken();
 
-        BADGER.safeApprove(address(cdpContract), 1337);
+        WETH.safeApprove(address(cdpContract), 1337);
         cdpContract.deposit(1337);
     }
 

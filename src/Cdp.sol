@@ -21,8 +21,8 @@ contract Cdp {
     using SafeTransferLib for ERC20;
 
     uint256 constant MAX_BPS = 10_000;
-
     uint256 constant LIQUIDATION_TRESHOLD = 10_000; // 100% in BPS
+    uint256 constant RATIO_DECIMALS = 10 ** 8;
 
     eBTC immutable public EBTC;
 
@@ -34,17 +34,20 @@ contract Cdp {
 
     uint256 ratio = 3e17;
 
-    uint256 constant RATIO_DECIMALS = 10 ** 8;
+    uint256 constant LTV_PERCENTAGE = 8e17;
 
     address owner;
 
     AggregatorV3Interface internal priceFeed;
 
-    constructor(ERC20 collateral) {
+    constructor() {
         EBTC = new eBTC();
-        COLLATERAL = collateral;
+        // WETH
+        COLLATERAL = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
         // BTC/ETH Oracle
         priceFeed = AggregatorV3Interface(0xdeb288F737066589598e9214E782fa5A8eD689e8);
+        // Set ratio on Contract deployment
+        setRatio();
     }
 
     /**
@@ -61,12 +64,13 @@ contract Cdp {
         return ethToBtcRatio;
     }
 
-    // NOTE: Unsafe should be protected by governance (tbh should be a feed)
-    function setRatio(uint256 newRatio) external {
-        ratio = newRatio;
+    function setRatio() public {
+        int256 ethToBtcRatio = getLatestRatio();
+        require(ethToBtcRatio > 0, "ETH to BTC ratio is negative");
+        ratio = 1e18 * RATIO_DECIMALS / (uint(ethToBtcRatio));
     }
 
-    function getRatio() private view returns (uint256) {
+    function getRatio() public view returns (uint256) {
         return ratio;
     }
 
@@ -151,9 +155,11 @@ contract Cdp {
         // Interaction
         EBTC.mint(msg.sender, amount);
     }
-
+    /// Calculate maximal borrow amount using formula:
+    /// Deposited ETH * (ETH / BTC  ratio) = Value
+    /// Value * LTV = Max Borrow
     function maxBorrow() public view returns (uint256) {
-        return totalDeposited * ratio / RATIO_DECIMALS;
+        return totalDeposited * ratio * LTV_PERCENTAGE / RATIO_DECIMALS;
     }
 
     function isSolvent() public view returns (bool) {

@@ -12,7 +12,7 @@ import {ERC20} from "../lib/solmate/src/tokens/ERC20.sol";
 contract BorrowTest is Test {
     using SafeTransferLib for ERC20;
 
-    ERC20 public constant BADGER = ERC20(0x3472A5A71965499acd81997a54BBA8D852C6E53d);
+    ERC20 public constant WETH = ERC20(0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2);
 
     address user;
     uint256 collateral_amount;
@@ -21,14 +21,14 @@ contract BorrowTest is Test {
 
     function getSomeToken() internal {
         vm.prank(0xD0A7A8B98957b9CD3cFB9c0425AbE44551158e9e);
-        BADGER.safeTransfer(address(this), 123e18);
-        assert(BADGER.balanceOf(address(this)) == 123e18);
+        WETH.safeTransfer(address(this), 123e18);
+        assert(WETH.balanceOf(address(this)) == 123e18);
     }
 
     function setUp() public {
-        cdpContract = new Cdp(BADGER);
+        cdpContract = new Cdp();
         user = address(this);
-        collateral_amount = 1337;
+        collateral_amount = 123e18;
     }
 
     function testbasicBorrow(uint32 amount) public {
@@ -40,8 +40,9 @@ contract BorrowTest is Test {
         getSomeToken();
 
         // Deposit collateral first
-        BADGER.safeApprove(address(cdpContract), collateral_amount);
+        WETH.safeApprove(address(cdpContract), collateral_amount);
         cdpContract.deposit(collateral_amount);
+        cdpContract.setRatio();
         cdpContract.borrow(amount);
         assert(cdpContract.EBTC().balanceOf(user) == amount);
     }
